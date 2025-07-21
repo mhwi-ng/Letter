@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>Letter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        .font-dancing {
+            font-family: 'Dancing Script', cursive;
+        }
+        .font-quicksand {
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #fff9fb;
+            overflow-x: hidden;
+        }
+
+        .dancing-font {
+            font-family: 'Dancing Script', cursive;
+        }
+
+        .heart {
+            animation: heartbeat 1.5s infinite;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .envelope {
+            transition: all 0.5s ease;
+            transform-style: preserve-3d;
+        }
+
+        .envelope.open {
+            transform: rotateX(180deg);
+        }
+
+        .letter {
+            transform: translateY(100%);
+            transition: all 0.8s ease;
+            opacity: 0;
+        }
+
+        .letter.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .music-control {
+            transition: all 0.3s ease;
+        }
+
+        .music-control:hover {
+            transform: scale(1.1);
+        }
+
+        /* Animation for typing text */
+        .typing-container {
+            overflow: visible;
+            white-space: normal;
+            border-right: none;
+            width: auto;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #f472b6 }
+        }
+
+        .fade-in {
+            animation: fadeIn 1.5s ease-in forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0 }
+            to { opacity: 1 }
+        }
+
+        @keyframes float {
+            0%, 100% {
+            transform: translateY(0) rotate(0deg);
+            }
+            50% {
+            transform: translateY(-15px) rotate(3deg);
+            }
+        }
+
+        .loopy-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        /* Overlay styles */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: all 0.5s ease;
+        }
+        
+        .overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .start-btn {
+            background-color: #ec4899;
+            color: white;
+            font-size: 1.5rem;
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            margin-top: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .start-btn:hover {
+            transform: scale(1.05);
+            background-color: #db2777;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+    <!-- Overlay màn hình bắt đầu -->
+    <div id="overlay" class="overlay">
+        <div class="text-center px-4">
+            <h1 class="dancing-font text-4xl md:text-5xl font-bold text-pink-500 mb-4">Hế Lô Boo!!</h1>
+            <p class="text-lg text-gray-600 mb-6">Nhấn nút bên dưới để bắt đầu với anh nhé</p>
+            <button id="startBtn" class="start-btn">
+                Bắt đầu  ❤️
+            </button>
+        </div>
+    </div>
+
+    <!-- Nhạc nền -->
+    <audio id="bgMusic" loop>
+        <source src="boo.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Nút điều khiển nhạc -->
+    <div class="fixed top-4 right-4 z-50">
+        <button id="musicToggle" class="music-control bg-pink-100 hover:bg-pink-200 text-pink-700 rounded-full p-3 shadow-lg hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- Phần chính (ban đầu ẩn) -->
+    <div id="mainContent" class="max-w-2xl w-full text-center hidden">
+        <!-- Tiêu đề -->
+        <h1 class="dancing-font text-5xl md:text-6xl font-bold text-pink-500 mb-8">Hế Lô Boo!!</h1>
+
+        <!-- Phần tâm tư -->
+        <div id="typingSection" class="bg-white rounded-xl shadow-lg p-8 mb-8">
+            <div class="heart inline-block text-pink-500 text-4xl mb-6">❤️</div>
+            <p id="typingText" class="typing-container text-lg md:text-xl text-pink-600 font-quicksand">
+                Hong biết em có bất ngờ khi anh làm giống như vậy kh he  😁. Hè mà cứ ở nhà miết thôi 😑, biết khi anh làm cái này là em hết cơ hội được ở nhà rồi đó 🤗, với lại cũng là lúc để mình gặp nhau nà, cũng cóa 1 chút hồi hộp đồ đó nhma có cái tiền đề là trong dis nói nhiều như mấy bà tám vậy nên chắc sẽ đỡ hơn đóa kakakaka. 
+                <span class="font-dancing text-3xl text-pink-500 italic leading-relaxed">Thế nên là...</span>
+            </p>
+        </div>
+
+        <!-- Câu h hỏi -->
+        <div id="quizSection" class="hidden bg-white rounded-xl shadow-lg p-8 mb-8 transform transition-all duration-500">
+            <div class="heart inline-block text-pink-500 text-4xl mb-6">❤️</div>
+            <h2 class="dancing-font text-3xl md:text-4xl text-pink-600 mb-6">Bé Boo đi chơi với anh nhoaa?</h2>
+            <div class="flex justify-center space-x-4">
+                <button id="yesBtn" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-105">
+                    Dạ  ❤️
+                </button>
+                <button id="noBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-6 rounded-full transition-all duration-300 transform hover:scale-105">
+                    Không
+                </button>
+            </div>
+        </div>
+
+        <!-- Thông báo khi chọn không -->
+        <div id="noMessage" class="hidden bg-white rounded-xl shadow-lg p-8 mb-8">
+            <p class="text-pink-600 text-lg md:text-xl">E chọn không là chỉ chọn zui thôi đúng hong? A biết là e mún đi với a mà 😘</p>
+            <button id="continueBtn" class="mt-4 bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-full transition-all duration-300">
+            Nhấn để mở quà❤️
+            </button>
+        </div>
+
+        <!-- Phong bì thư -->
+        <div id="envelope" class="hidden envelope relative w-64 h-40 mx-auto mb-8 cursor-pointer">
+            <div class="absolute inset-0 bg-pink-400 rounded-lg shadow-lg"></div>
+            <div class="absolute top-0 left-0 right-0 h-20 bg-pink-300 rounded-t-lg"></div>
+            <div class="absolute top-16 left-0 right-0 border-t-32 border-t-pink-300 border-l-32 border-l-transparent border-r-32 border-r-transparent"></div>
+            <div class="absolute inset-2 bg-pink-100 rounded-sm flex items-center justify-center">
+                <span class="dancing-font text-xl text-pink-600">Lịch trình chi tiết ạ  ❤️</span>
+            </div>
+        </div>
+
+        <!-- Lá thư -->
+        <div id="letter" class="letter bg-white rounded-lg shadow-xl p-8 max-w-2xl mx-auto hidden">
+            <div class="border-2 border-pink-200 rounded p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="dancing-font text-3xl text-pink-600">Lịch trình hẹn hò</h2>
+                    <div class="heart text-pink-500 text-2xl">💌</div>
+                </div>
+
+                <div class="text-left space-y-6">
+                    <div class="flex items-start">
+                        <div class="bg-pink-100 text-pink-700 rounded-full w-10 h-10 flex items-center justify-center mr-4 flex-shrink-0">8h</div>
+                        <div>
+                            <h3 class="font-bold text-pink-700">Đón em</h3>
+                            <p class="text-gray-600">Anh sẽ đón Boo tại nhà của em nhá!</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <div class="bg-pink-100 text-pink-700 rounded-full w-10 h-10 flex items-center justify-center mr-4 flex-shrink-0">9h</div>
+                        <div>
+                            <h3 class="font-bold text-pink-700">Ăn Sáng </h3>
+                            <p class="text-gray-600">Ăn sáng cùng nhau tại 100gr Beefsteak</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <div class="bg-pink-100 text-pink-700 rounded-full w-10 h-10 flex items-center justify-center mr-4 flex-shrink-0">10h</div>
+                        <div>
+                            <h3 class="font-bold text-pink-700">Tham quan sở thú</h3>
+                            <p class="text-gray-600">Thảo cầm viên sài gòn, nơi chục năm rồi 2 mình chưa đi :D</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <div class="bg-pink-100 text-pink-700 rounded-full w-10 h-10 flex items-center justify-center mr-4 flex-shrink-0">14h</div>
+                        <div>
+                            <h3 class="font-bold text-pink-700">Xem phim</h3>
+                            <p class="text-gray-600">Phim kinh dị Út Lan tại CGV Aeon Tân Phú</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <div class="bg-pink-100 text-pink-700 rounded-full w-10 h-10 flex items-center justify-center mr-4 flex-shrink-0">17h</div>
+                        <div>
+                            <h3 class="font-bold text-pink-700">Khu trò chơi Aeon</h3>
+                            <p class="text-gray-600">Trở về tuổi thơ với các trò con nít nhể, quậy banh xác luôn </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <div class="bg-pink-100 text-pink-700 rounded-full w-10 h-10 flex items-center justify-center mr-4 flex-shrink-0">19h</div>
+                        <div>
+                            <h3 class="font-bold text-pink-700">Ăn tối</h3>
+                            <p class="text-gray-600">Tất cả các món trừ ghẹ và cá nhóe heheheeh</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <div class="bg-pink-100 text-pink-700 rounded-full w-10 h-10 flex items-center justify-center mr-4 flex-shrink-0">22h</div>
+                        <div>
+                            <h3 class="font-bold text-pink-700">Đi dạo/Về nhà</h3>
+                            <p class="text-gray-600">Đi dạo ngắm sài gòn cùng anh nhá và cuối cùng là Anh sẽ đưa em về tận nhà an toàn</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-4 border-t border-pink-200">
+                    <p class="dancing-font text-2xl text-pink-600">Hẹn gặp em vào thứ 4 tuần này nhé!</p>
+                    <p class="text-gray-600 mt-2">Anh sẽ chuẩn bị thật nhiều điều bất ngờ cho em đó 😜❤️</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loopy và trang trí -->
+        <img src="https://i.pinimg.com/736x/a9/5a/25/a95a251fb2b24b7247ac07d1a7798030.jpg"
+             class="hidden md:block fixed -left-20 bottom-0 w-40 opacity-50 loopy-float">
+
+        <img src="https://i.pinimg.com/736x/e3/f3/92/e3f3920b527a4bee5a08614c5d8f3d0f.jpg"
+             class="hidden md:block fixed -right-20 top-1/3 w-40 opacity-50 loopy-float">
+
+        <img src="https://i.pinimg.com/736x/86/c5/04/86c5043ddd2d0b72d916853f37d94eb1.jpg"
+             class="hidden md:block fixed left-1/4 top-10 w-28 opacity-30 loopy-float">
+
+        <img src="https://i.pinimg.com/736x/16/a1/bf/16a1bfdaee8c365614d5f108e3890c2a.jpg"
+             class="hidden md:block fixed right-1/4 bottom-20 w-28 opacity-30 loopy-float">
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Các biến cần thiết
+            const overlay = document.getElementById('overlay');
+            const startBtn = document.getElementById('startBtn');
+            const mainContent = document.getElementById('mainContent');
+            const musicToggle = document.getElementById('musicToggle');
+            const music = document.getElementById('bgMusic');
+            let isMusicPlaying = false;
+            
+            // Xử lý sự kiện khi nhấn nút bắt đầu
+            startBtn.addEventListener('click', function() {
+                // Ẩn overlay
+                overlay.classList.add('hidden');
+                
+                // Hiện nội dung chính
+                mainContent.classList.remove('hidden');
+                mainContent.classList.add('fade-in');
+                
+                // Hiện nút điều khiển nhạc
+                musicToggle.classList.remove('hidden');
+                
+                // Phát nhạc
+                music.volume = 0.3;
+                const playPromise = music.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        isMusicPlaying = true;
+                    }).catch(error => {
+                        isMusicPlaying = false;
+                        updateMusicButton();
+                    });
+                }
+                
+                // Bắt đầu hiệu ứng gõ chữ
+                startTypingEffect();
+            });
+            
+            // Cập nhật trạng thái nút nhạc
+            function updateMusicButton() {
+                if (isMusicPlaying) {
+                    musicToggle.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                        </svg>
+                    `;
+                } else {
+                    musicToggle.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                        </svg>
+                    `;
+                }
+            }
+            
+            // Toggle nhạc
+            musicToggle.addEventListener('click', function() {
+                if (isMusicPlaying) {
+                    music.pause();
+                } else {
+                    music.play();
+                }
+                isMusicPlaying = !isMusicPlaying;
+                updateMusicButton();
+            });
+            
+            // Hiệu ứng gõ chữ
+            function startTypingEffect() {
+                const typingSection = document.getElementById('typingSection');
+                const quizSection = document.getElementById('quizSection');
+                const typingText = document.getElementById('typingText');
+                const fullText = typingText.textContent;
+                typingText.textContent = '';
+
+                let i = 0;
+                const speed = 50; // Tốc độ gõ chữ (ms)
+
+                function typeWriter() {
+                    if (i < fullText.length) {
+                        typingText.textContent += fullText.charAt(i);
+                        i++;
+                        setTimeout(typeWriter, speed);
+                    } else {
+                        setTimeout(() => {
+                            typingSection.classList.add('hidden');
+                            quizSection.classList.remove('hidden');
+                            quizSection.classList.add('fade-in');
+                        }, 1000);
+                    }
+                }
+
+                typeWriter();
+            }
+            
+            // Xử lý câu h hỏi
+            const yesBtn = document.getElementById('yesBtn');
+            const noBtn = document.getElementById('noBtn');
+            const noMessage = document.getElementById('noMessage');
+            const continueBtn = document.getElementById('continueBtn');
+            const envelope = document.getElementById('envelope');
+            const letter = document.getElementById('letter');
+
+            yesBtn.addEventListener('click', function() {
+                quizSection.classList.add('hidden');
+                envelope.classList.remove('hidden');
+                envelope.classList.add('fade-in');
+            });
+
+            noBtn.addEventListener('click', function() {
+                quizSection.classList.add('hidden');
+                noMessage.classList.remove('hidden');
+                noMessage.classList.add('fade-in');
+            });
+
+            continueBtn.addEventListener('click', function() {
+                noMessage.classList.add('hidden');
+                envelope.classList.remove('hidden');
+                envelope.classList.add('fade-in');
+            });
+
+            // Xử lý phong bì thư
+            envelope.addEventListener('click', function() {
+                this.classList.add('open');
+                setTimeout(() => {
+                    this.classList.add('hidden');
+                    letter.classList.remove('hidden');
+                    setTimeout(() => {
+                        letter.classList.add('show');
+                    }, 100);
+                }, 800);
+            });
+        });
+    </script>
+</body>
+</html>
